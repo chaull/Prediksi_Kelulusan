@@ -1,10 +1,148 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import pickle # For saving and loading models
+import pickle
 from sklearn.preprocessing import LabelEncoder
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split # Needed for dummy model training
+from sklearn.model_selection import train_test_split
+
+# --- Streamlit Page Configuration ---
+st.set_page_config(
+    page_title="Prediksi Kelulusan Mahasiswa",
+    page_icon="🎓",
+    layout="wide", # Menggunakan layout lebar
+    initial_sidebar_state="auto"
+)
+
+# --- Custom CSS for enhanced aesthetics ---
+st.markdown(
+    """
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+
+    html, body, [class*="st-"] {
+        font-family: 'Inter', sans-serif;
+        color: #333;
+    }
+
+    .main {
+        background-color: #f0f2f6; /* Light gray background */
+        padding: 20px;
+        border-radius: 10px;
+    }
+
+    .stApp {
+        background: linear-gradient(to right, #ece9e6, #ffffff); /* Subtle gradient */
+    }
+
+    .stContainer {
+        background-color: #ffffff;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+        border: 1px solid #e0e0e0;
+    }
+
+    h1 {
+        color: #2c3e50;
+        text-align: center;
+        margin-bottom: 25px;
+        font-weight: 700;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.05);
+    }
+
+    h2, h3, h4 {
+        color: #34495e;
+        font-weight: 600;
+        margin-top: 20px;
+        margin-bottom: 15px;
+    }
+
+    .stButton>button {
+        background-color: #4CAF50; /* Green */
+        color: white;
+        padding: 10px 24px;
+        border-radius: 8px;
+        border: none;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        width: 100%; /* Make button full width */
+    }
+
+    .stButton>button:hover {
+        background-color: #45a049;
+        box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+        transform: translateY(-2px);
+    }
+
+    .stSuccess {
+        background-color: #e6ffe6; /* Light green */
+        color: #28a745; /* Darker green text */
+        padding: 15px;
+        border-radius: 8px;
+        border: 1px solid #28a745;
+        font-weight: 600;
+        text-align: center;
+        margin-top: 20px;
+    }
+
+    .stError {
+        background-color: #ffe6e6; /* Light red */
+        color: #dc3545; /* Darker red text */
+        padding: 15px;
+        border-radius: 8px;
+        border: 1px solid #dc3545;
+        font-weight: 600;
+        text-align: center;
+        margin-top: 20px;
+    }
+
+    .stInfo {
+        background-color: #e6f7ff; /* Light blue */
+        color: #007bff; /* Darker blue text */
+        padding: 15px;
+        border-radius: 8px;
+        border: 1px solid #007bff;
+        font-weight: 600;
+        margin-top: 15px;
+        margin-bottom: 15px;
+    }
+
+    /* Custom progress bar style */
+    .progress-container {
+        width: 100%;
+        background-color: #e0e0e0;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-top: 20px;
+        box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .progress-bar {
+        height: 30px;
+        line-height: 30px;
+        color: white;
+        text-align: center;
+        border-radius: 10px;
+        transition: width 0.5s ease-in-out;
+        background: linear-gradient(to right, #28a745, #8bc34a); /* Green gradient */
+    }
+
+    .progress-bar.red {
+        background: linear-gradient(to right, #dc3545, #ff5722); /* Red gradient */
+    }
+
+    .stMarkdown p {
+        line-height: 1.6;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 # Function to load and train the model (or load an existing one)
 @st.cache_resource # Cache resource to avoid retraining every time the app runs
@@ -30,15 +168,12 @@ def load_and_train_model():
     # except FileNotFoundError:
     #     st.warning("File model atau encoder tidak ditemukan. Melatih ulang model dummy...")
 
-    # Data dummy yang diperluas untuk contoh pelatihan
-    # Di aplikasi nyata, Anda akan menggunakan data dari file 'Kelulusan Train.csv' Anda.
+    # Extended dummy data for training example
+    # In a real application, you would use data from your 'Kelulusan Train.csv' file.
     data = {
-        'Gender': ['Pria', 'Wanita', 'Pria', 'Wanita', 'Pria', 'Wanita', 'Pria', 'Wanita', 'Pria', 'Wanita',
-                   'Pria', 'Wanita', 'Pria', 'Wanita', 'Pria', 'Wanita', 'Pria', 'Wanita', 'Pria', 'Wanita'],
-        'Status_Mahasiswa': ['Bekerja', 'Tidak Bekerja', 'Bekerja', 'Tidak Bekerja', 'Bekerja', 'Tidak Bekerja', 'Bekerja', 'Tidak Bekerja', 'Bekerja', 'Tidak Bekerja',
-                             'Bekerja', 'Tidak Bekerja', 'Bekerja', 'Tidak Bekerja', 'Bekerja', 'Tidak Bekerja', 'Bekerja', 'Tidak Bekerja', 'Bekerja', 'Tidak Bekerja'],
-        'Status_Nikah': ['Belum Menikah', 'Menikah', 'Belum Menikah', 'Belum Menikah', 'Menikah', 'Belum Menikah', 'Menikah', 'Belum Menikah', 'Menikah', 'Belum Menikah',
-                         'Belum Menikah', 'Belum Menikah', 'Menikah', 'Belum Menikah', 'Menikah', 'Belum Menikah', 'Belum Menikah', 'Menikah', 'Menikah', 'Belum Menikah'],
+        'Gender': ['Pria', 'Wanita'] * 10, # 20 entries
+        'Status_Mahasiswa': ['Bekerja', 'Tidak Bekerja'] * 10, # 20 entries
+        'Status_Nikah': ['Belum Menikah', 'Menikah'] * 10, # 20 entries
         'Usia': [20, 21, 22, 20, 23, 21, 24, 20, 25, 22, 19, 20, 21, 22, 23, 20, 24, 21, 25, 22],
         'IPS1': [3.5, 3.8, 2.5, 3.9, 3.0, 3.7, 3.1, 3.8, 2.0, 3.6, 3.7, 3.5, 3.8, 2.6, 3.9, 3.0, 3.2, 3.7, 2.1, 3.6],
         'IPS2': [3.6, 3.7, 2.6, 3.8, 3.1, 3.6, 3.2, 3.7, 2.1, 3.5, 3.8, 3.6, 3.7, 2.7, 3.8, 3.1, 3.3, 3.6, 2.2, 3.5],
@@ -92,46 +227,50 @@ def load_and_train_model():
 model, le_gender, le_status_mahasiswa, le_status_nikah, model_features = load_and_train_model()
 
 # --- Streamlit Application Title ---
-st.title('Aplikasi Prediksi Kelulusan Mahasiswa')
-st.write('Isi form di bawah ini untuk memprediksi probabilitas kelulusan mahasiswa berdasarkan berbagai kriteria.')
+st.markdown("<h1 style='text-align: center; color: #2c3e50;'>🎓 Aplikasi Prediksi Kelulusan Mahasiswa</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; font-size: 1.1em;'>Isi form di bawah ini untuk memprediksi probabilitas kelulusan mahasiswa berdasarkan berbagai kriteria.</p>", unsafe_allow_html=True)
 
 # --- Input Form Section ---
-st.header('Data Diri Mahasiswa')
+st.markdown("---")
+st.subheader('Data Diri Mahasiswa')
 
-# Using columns for a cleaner layout
-col1, col2 = st.columns(2)
-with col1:
-    gender = st.selectbox('Jenis Kelamin', ['Pria', 'Wanita'])
-    status_mahasiswa = st.selectbox('Status Mahasiswa', ['Bekerja', 'Tidak Bekerja'])
-with col2:
-    usia = st.number_input('Usia', min_value=17, max_value=70, value=20, help="Masukkan usia mahasiswa.")
-    status_nikah = st.selectbox('Status Pernikahan', ['Belum Menikah', 'Menikah'])
+with st.container():
+    col1, col2 = st.columns(2)
+    with col1:
+        gender = st.selectbox('Jenis Kelamin', ['Pria', 'Wanita'])
+        status_mahasiswa = st.selectbox('Status Mahasiswa', ['Bekerja', 'Tidak Bekerja'])
+    with col2:
+        usia = st.number_input('Usia', min_value=17, max_value=70, value=20, help="Masukkan usia mahasiswa.")
+        status_nikah = st.selectbox('Status Pernikahan', ['Belum Menikah', 'Menikah'])
 
-st.header('Nilai Akademik')
-ips_values = {}
-# Using st.columns for a more organized IPS input layout
-num_ips_cols = 4 # Number of columns for IPS inputs
-cols_ips = st.columns(num_ips_cols)
+st.markdown("---")
+st.subheader('Nilai Akademik')
 
-for i in range(1, 9):
-    with cols_ips[(i - 1) % num_ips_cols]: # Distribute inputs across columns
-        ips_values[f'IPS{i}'] = st.number_input(f'IPS Semester {i}', min_value=0.0, max_value=4.0, value=3.0, step=0.01, key=f'ips_{i}', help=f"Masukkan Indeks Prestasi Semester {i} (0.0 - 4.0).")
+with st.container():
+    ips_values = {}
+    num_ips_cols = 4
+    cols_ips = st.columns(num_ips_cols)
+
+    for i in range(1, 9):
+        with cols_ips[(i - 1) % num_ips_cols]:
+            ips_values[f'IPS{i}'] = st.number_input(f'IPS Semester {i}', min_value=0.0, max_value=4.0, value=3.0, step=0.01, key=f'ips_{i}', help=f"Masukkan Indeks Prestasi Semester {i} (0.0 - 4.0).")
 
 # Calculate IPK from the input IPS values
 if ips_values:
     calculated_ipk = np.mean(list(ips_values.values()))
 else:
-    calculated_ipk = 0.0 # Default value if no IPS inputs (though this shouldn't happen with fixed loops)
+    calculated_ipk = 0.0
 
 # Display the calculated IPK before the prediction button
-st.info(f"IPK yang Dihitung Otomatis: **{calculated_ipk:.2f}**")
+st.info(f"<b>IPK yang Dihitung Otomatis: <span style='font-size:1.2em;'>{calculated_ipk:.2f}</span></b>", unsafe_allow_html=True)
 
-st.header('Prediksi Kelulusan')
+st.markdown("---")
+st.subheader('Prediksi Kelulusan')
+
 # --- Prediction Button ---
 if st.button('Prediksi Kelulusan'):
     try:
         # Preprocessing input for categorical features using trained encoders
-        # Use .transform() directly as encoders are already fitted with all possible classes
         gender_encoded = le_gender.transform([gender])[0]
         status_mahasiswa_encoded = le_status_mahasiswa.transform([status_mahasiswa])[0]
         status_nikah_encoded = le_status_nikah.transform([status_nikah])[0]
@@ -139,12 +278,12 @@ if st.button('Prediksi Kelulusan'):
         # Prepare input data in dictionary format
         input_dict = {
             'Usia': usia,
-            'IPK': calculated_ipk, # Using the calculated IPK
+            'IPK': calculated_ipk,
             'Gender_encoded': gender_encoded,
             'Status_Mahasiswa_encoded': status_mahasiswa_encoded,
             'Status_Nikah_encoded': status_nikah_encoded,
         }
-        for i in range(1, 9): # Add all IPS values to the dictionary
+        for i in range(1, 9):
             input_dict[f'IPS{i}'] = ips_values[f'IPS{i}']
 
         # Create DataFrame from user input, ensure column order matches model_features
@@ -152,22 +291,40 @@ if st.button('Prediksi Kelulusan'):
 
         # Perform Prediction
         prediction = model.predict(input_data_df)
-        prediction_proba = model.predict_proba(input_data_df) # Probabilities for both classes (0 and 1)
+        prediction_proba = model.predict_proba(input_data_df)
 
-        st.subheader('Hasil Prediksi:')
-        if prediction[0] == 1:
-            st.success('Mahasiswa diprediksi **LULUS**! �')
-        else:
-            st.error('Mahasiswa diprediksi **TIDAK LULUS**! 😔')
+        st.markdown("---")
+        st.subheader('Hasil Prediksi & Skala Probabilitas')
 
-        # Display probabilities in a readable format
-        st.write(f"Probabilitas Lulus: **{prediction_proba[0][1]*100:.2f}%**")
-        st.write(f"Probabilitas Tidak Lulus: **{prediction_proba[0][0]*100:.2f}%**")
+        # Display results and probability scale
+        col_res, col_scale = st.columns([1, 2]) # Adjust column width for result and scale
+
+        with col_res:
+            if prediction[0] == 1:
+                st.success('Mahasiswa diprediksi **LULUS**! 🎉')
+            else:
+                st.error('Mahasiswa diprediksi **TIDAK LULUS**! 😔')
+
+        with col_scale:
+            pass_proba = prediction_proba[0][1] * 100
+            fail_proba = prediction_proba[0][0] * 100
+
+            st.write(f"Probabilitas Lulus: **{pass_proba:.2f}%**")
+            st.write(f"Probabilitas Tidak Lulus: **{fail_proba:.2f}%**")
+
+            # Custom visual scale (progress bar like)
+            progress_bar_color_class = "progress-bar" if pass_proba >= 50 else "progress-bar red"
+            st.markdown(f"""
+                <div class="progress-container">
+                    <div class="{progress_bar_color_class}" style="width: {pass_proba:.2f}%;">
+                        {pass_proba:.2f}% Lulus
+                    </div>
+                </div>
+            """, unsafe_allow_html=True)
+
 
     except Exception as e:
-        # Catch any unexpected errors
         st.error(f"Terjadi kesalahan: {e}. Mohon coba lagi. Jika masalah berlanjut, pastikan semua input valid dan model Anda dilatih dengan benar.")
 
 st.markdown('---')
 st.caption('Aplikasi ini dibuat menggunakan Streamlit dan scikit-learn. Model prediksi menggunakan data dummy; untuk hasil yang akurat, gantilah dengan model yang telah dilatih pada dataset asli Anda.')
-
