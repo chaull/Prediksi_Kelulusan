@@ -22,6 +22,7 @@ def load_and_train_model():
     #     with open('le_status_nikah.pkl', 'rb') as f:
     #         le_status_nikah = pickle.load(f)
     #     # Definisikan urutan fitur yang tepat yang diharapkan model Anda
+    #     # IPK akan dihitung, jadi pastikan model Anda dilatih dengan IPK sebagai fitur
     #     model_features = ['Usia', 'IPK', 'IPS1', 'IPS2', 'IPS3', 'IPS4', 'IPS5', 'IPS6', 'IPS7', 'IPS8',
     #                       'Gender_encoded', 'Status_Mahasiswa_encoded', 'Status_Nikah_encoded']
     #     st.success("Model dan encoder berhasil dimuat dari file.")
@@ -34,8 +35,8 @@ def load_and_train_model():
     data = {
         'Gender': ['Pria', 'Wanita', 'Pria', 'Wanita', 'Pria', 'Wanita', 'Pria', 'Wanita', 'Pria', 'Wanita',
                    'Pria', 'Wanita', 'Pria', 'Wanita', 'Pria', 'Wanita', 'Pria', 'Wanita', 'Pria', 'Wanita'],
-        'Status_Mahasiswa': ['Aktif', 'Aktif', 'Cuti', 'Aktif', 'Aktif', 'Aktif', 'Cuti', 'Aktif', 'Non-Aktif', 'Aktif',
-                             'Aktif', 'Aktif', 'Aktif', 'Cuti', 'Aktif', 'Aktif', 'Aktif', 'Aktif', 'Non-Aktif', 'Aktif'],
+        'Status_Mahasiswa': ['Bekerja', 'Tidak Bekerja', 'Bekerja', 'Tidak Bekerja', 'Bekerja', 'Tidak Bekerja', 'Bekerja', 'Tidak Bekerja', 'Bekerja', 'Tidak Bekerja',
+                             'Bekerja', 'Tidak Bekerja', 'Bekerja', 'Tidak Bekerja', 'Bekerja', 'Tidak Bekerja', 'Bekerja', 'Tidak Bekerja', 'Bekerja', 'Tidak Bekerja'],
         'Usia': [20, 21, 22, 20, 23, 21, 24, 20, 25, 22, 19, 20, 21, 22, 23, 20, 24, 21, 25, 22],
         'Status_Nikah': ['Belum Menikah', 'Menikah', 'Belum Menikah', 'Belum Menikah', 'Menikah', 'Belum Menikah', 'Menikah', 'Belum Menikah', 'Menikah', 'Belum Menikah',
                          'Belum Menikah', 'Belum Menikah', 'Menikah', 'Belum Menikah', 'Menikah', 'Belum Menikah', 'Belum Menikah', 'Menikah', 'Menikah', 'Belum Menikah'],
@@ -47,10 +48,13 @@ def load_and_train_model():
         'IPS6': [3.4, 3.9, 2.4, 4.0, 2.9, 3.8, 3.0, 3.9, 1.9, 3.7, 3.6, 3.4, 3.9, 2.5, 4.0, 2.9, 3.1, 3.8, 2.0, 3.7],
         'IPS7': [3.5, 3.8, 2.5, 3.9, 3.0, 3.7, 3.1, 3.8, 2.0, 3.6, 3.7, 3.5, 3.8, 2.6, 3.9, 3.0, 3.2, 3.7, 2.1, 3.6],
         'IPS8': [3.6, 3.7, 2.6, 3.8, 3.1, 3.6, 3.2, 3.7, 2.1, 3.5, 3.8, 3.6, 3.7, 2.7, 3.8, 3.1, 3.3, 3.6, 2.2, 3.5],
-        'IPK': [3.55, 3.80, 2.55, 3.90, 3.05, 3.70, 3.15, 3.80, 2.05, 3.65, 3.75, 3.55, 3.75, 2.65, 3.95, 3.05, 3.25, 3.75, 2.15, 3.55],
-        'Kelulusan': [1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1] # 1 untuk Lulus, 0 untuk Tidak Lulus
+        'Kelulusan': [1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1] # 1 for Lulus, 0 for Tidak Lulus
     }
     df_dummy = pd.DataFrame(data)
+
+    # Calculate IPK as average of IPS1-IPS8 for dummy data
+    ips_cols = [f'IPS{i}' for i in range(1, 9)]
+    df_dummy['IPK'] = df_dummy[ips_cols].mean(axis=1)
 
     # Inisialisasi LabelEncoder untuk setiap kolom kategorikal
     le_gender = LabelEncoder()
@@ -65,7 +69,7 @@ def load_and_train_model():
     # Definisikan fitur (X) dan target (y)
     # Pastikan urutan kolom sesuai dengan yang diharapkan model Anda saat pelatihan
     model_features = [
-        'Usia', 'IPK',
+        'Usia', 'IPK', # IPK is now calculated
         'IPS1', 'IPS2', 'IPS3', 'IPS4', 'IPS5', 'IPS6', 'IPS7', 'IPS8',
         'Gender_encoded', 'Status_Mahasiswa_encoded', 'Status_Nikah_encoded'
     ]
@@ -93,10 +97,11 @@ st.header('Data Diri Mahasiswa')
 col1, col2 = st.columns(2)
 with col1:
     gender = st.selectbox('Jenis Kelamin', ['Pria', 'Wanita'])
-    status_mahasiswa = st.selectbox('Status Mahasiswa', ['Aktif', 'Cuti', 'Non-Aktif', 'Drop Out']) # Sesuaikan opsi jika perlu
+    # Diperbarui: Opsi Status Mahasiswa
+    status_mahasiswa = st.selectbox('Status Mahasiswa', ['Bekerja', 'Tidak Bekerja'])
 with col2:
     usia = st.number_input('Usia', min_value=17, max_value=70, value=20, help="Masukkan usia mahasiswa.")
-    status_nikah = st.selectbox('Status Pernikahan', ['Belum Menikah', 'Menikah', 'Cerai', 'Janda/Duda']) # Sesuaikan opsi
+    status_nikah = st.selectbox('Status Pernikahan', ['Belum Menikah', 'Menikah', 'Cerai', 'Janda/Duda'])
 
 st.header('Nilai Akademik')
 ips_values = {}
@@ -108,7 +113,8 @@ for i in range(1, 9):
     with cols_ips[(i - 1) % num_ips_cols]: # Mendistribusikan input ke kolom
         ips_values[f'IPS{i}'] = st.number_input(f'IPS Semester {i}', min_value=0.0, max_value=4.0, value=3.0, step=0.01, key=f'ips_{i}', help=f"Masukkan Indeks Prestasi Semester {i} (0.0 - 4.0).")
 
-ipk = st.number_input('IPK (Indeks Prestasi Kumulatif)', min_value=0.0, max_value=4.0, value=3.0, step=0.01, help="Masukkan Indeks Prestasi Kumulatif (0.0 - 4.0).")
+# IPK sekarang dihitung otomatis, tidak lagi menjadi input langsung
+# st.number_input('IPK (Indeks Prestasi Kumulatif)', min_value=0.0, max_value=4.0, value=3.0, step=0.01, help="Masukkan Indeks Prestasi Kumulatif (0.0 - 4.0).")
 
 st.header('Prediksi Kelulusan')
 # --- Tombol Prediksi ---
@@ -119,10 +125,18 @@ if st.button('Prediksi Kelulusan'):
         status_mahasiswa_encoded = le_status_mahasiswa.transform([status_mahasiswa])[0]
         status_nikah_encoded = le_status_nikah.transform([status_nikah])[0]
 
+        # Hitung IPK dari rata-rata IPS yang diinput
+        # Pastikan list IPS tidak kosong sebelum menghitung rata-rata
+        if ips_values:
+            calculated_ipk = np.mean(list(ips_values.values()))
+        else:
+            calculated_ipk = 0.0 # Default value if no IPS inputs (though this shouldn't happen with fixed loops)
+        st.info(f"IPK yang Dihitung Otomatis: {calculated_ipk:.2f}") # Tampilkan IPK yang dihitung
+
         # Siapkan data input dalam format dictionary
         input_dict = {
             'Usia': usia,
-            'IPK': ipk,
+            'IPK': calculated_ipk, # Menggunakan IPK yang sudah dihitung
             'Gender_encoded': gender_encoded,
             'Status_Mahasiswa_encoded': status_mahasiswa_encoded,
             'Status_Nikah_encoded': status_nikah_encoded,
