@@ -170,4 +170,4 @@ if st.button('Prediksi Kelulusan'):
 
 st.markdown('---')
 st.caption('Aplikasi ini dibuat menggunakan Streamlit dan scikit-learn. Model prediksi menggunakan data dummy; untuk hasil yang akurat, gantilah dengan model yang telah dilatih pada dataset asli Anda.')
-�
+
