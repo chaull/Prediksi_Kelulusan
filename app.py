@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import pickle # For saving and loading models (if used)
+import joblib # Changed from pickle to joblib for saving and loading models
 from sklearn.preprocessing import LabelEncoder
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split # Needed for dummy model training
@@ -161,47 +161,56 @@ st.markdown(
 @st.cache_resource
 def load_and_train_model():
     # --- PENTING: GANTI BAGIAN INI DENGAN KODE ASLI PELATIHAN MODEL ANDA ---
-    # Jika Anda sudah memiliki model dan encoder yang tersimpan (misal file .pkl),
+    # Jika Anda sudah memiliki model dan encoder yang tersimpan (misal file .joblib),
     # Anda sangat disarankan untuk memuatnya di sini daripada melatih ulang.
-    # Contoh pemuatan model:
+    # Contoh pemuatan model menggunakan joblib:
     # try:
-    #     with open('nama_model_anda.pkl', 'rb') as f:
-    #         model = pickle.load(f)
-    #     with open('nama_le_gender.pkl', 'rb') as f:
-    #         le_gender = pickle.load(f)
-    #     with open('nama_le_status_mhs.pkl', 'rb') as f:
-    #         le_status_mahasiswa = pickle.load(f)
-    #     with open('nama_le_status_nikah.pkl', 'rb') as f:
-    #         le_status_nikah = pickle.load(f)
-    #     # Pastikan daftar fitur ini sesuai dengan yang digunakan saat melatih model asli
+    #     model = joblib.load('nama_model_anda.joblib')
+    #     le_gender = joblib.load('nama_le_gender.joblib')
+    #     le_status_mahasiswa = joblib.load('nama_le_status_mhs.joblib')
+    #     le_status_nikah = joblib.load('nama_le_status_nikah.joblib')
+    #
+    #     # Definisikan urutan fitur yang tepat yang diharapkan model Anda saat pelatihan
     #     model_features = ['Usia', 'IPK', 'IPS1', 'IPS2', 'IPS3', 'IPS4', 'IPS5', 'IPS6', 'IPS7', 'IPS8',
     #                       'Gender_encoded', 'Status_Mahasiswa_encoded', 'Status_Nikah_encoded']
     #     st.success("Model dan encoder berhasil dimuat dari file. (Ini hanya pesan di development)")
     #     return model, le_gender, le_status_mahasiswa, le_status_nikah, model_features
     # except FileNotFoundError:
     #     st.warning("File model atau encoder tidak ditemukan. Melatih ulang model dummy untuk demo...")
+    # except Exception as e:
+    #     st.error(f"Error saat memuat model: {e}. Melatih ulang model dummy untuk demo...")
 
-    # Data dummy yang diperluas untuk contoh pelatihan
-    # Data ini sengaja dibuat agar mencakup semua kategori yang ada di radio button
-    data = {
-        'Gender': ['Pria', 'Wanita'] * 10,
-        'Status_Mahasiswa': ['Bekerja', 'Tidak Bekerja'] * 10,
-        'Status_Nikah': ['Belum Menikah', 'Menikah'] * 10,
-        'Usia': [20, 21, 22, 20, 23, 21, 24, 20, 25, 22, 19, 20, 21, 22, 23, 20, 24, 21, 25, 22],
-        'IPS1': [3.5, 3.8, 2.5, 3.9, 3.0, 3.7, 3.1, 3.8, 2.0, 3.6, 3.7, 3.5, 3.8, 2.6, 3.9, 3.0, 3.2, 3.7, 2.1, 3.6],
-        'IPS2': [3.6, 3.7, 2.6, 3.8, 3.1, 3.6, 3.2, 3.7, 2.1, 3.5, 3.8, 3.6, 3.7, 2.7, 3.8, 3.1, 3.3, 3.6, 2.2, 3.5],
-        'IPS3': [3.4, 3.9, 2.4, 4.0, 2.9, 3.8, 3.0, 3.9, 1.9, 3.7, 3.6, 3.4, 3.9, 2.5, 4.0, 2.9, 3.1, 3.8, 2.0, 3.7],
-        'IPS4': [3.5, 3.8, 2.5, 3.9, 3.0, 3.7, 3.1, 3.8, 2.0, 3.6, 3.7, 3.5, 3.8, 2.6, 3.9, 3.0, 3.2, 3.7, 2.1, 3.6],
-        'IPS5': [3.6, 3.7, 2.6, 3.8, 3.1, 3.6, 3.2, 3.7, 2.1, 3.5, 3.8, 3.6, 3.7, 2.7, 3.8, 3.1, 3.3, 3.6, 2.2, 3.5],
-        'IPS6': [3.4, 3.9, 2.4, 4.0, 2.9, 3.8, 3.0, 3.9, 1.9, 3.7, 3.6, 3.4, 3.9, 2.5, 4.0, 2.9, 3.1, 3.8, 2.0, 3.7],
-        'IPS7': [3.5, 3.8, 2.5, 3.9, 3.0, 3.7, 3.1, 3.8, 2.0, 3.6, 3.7, 3.5, 3.8, 2.6, 3.9, 3.0, 3.2, 3.7, 2.1, 3.6],
-        'IPS8': [3.6, 3.7, 2.6, 3.8, 3.1, 3.6, 3.2, 3.7, 2.1, 3.5, 3.8, 3.6, 3.7, 2.7, 3.8, 3.1, 3.3, 3.6, 2.2, 3.5],
-        'Kelulusan': [1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1] # 1 for Lulus, 0 for Tidak Lulus
-    }
-    df_dummy = pd.DataFrame(data)
+    # Memuat data dummy dari file CSV yang Anda berikan (Kelulusan Test.csv)
+    # Asumsi: Ini adalah data yang mirip dengan data training Anda
+    # Jika Anda memiliki 'Kelulusan Train.csv' yang sebenarnya, gunakan itu di sini.
+    try:
+        # Menyesuaikan dengan format CSV yang menggunakan ';' sebagai delimiter
+        df_dummy = pd.read_csv('/content/Kelulusan Test.csv', delimiter=';')
+        st.info("Menggunakan data dummy dari 'Kelulusan Test.csv' untuk pelatihan model.")
+    except FileNotFoundError:
+        st.warning("File 'Kelulusan Test.csv' tidak ditemukan. Menggunakan data dummy internal.")
+        # Data dummy internal jika file CSV tidak ditemukan
+        data = {
+            'Gender': ['Pria', 'Wanita'] * 10, # 20 entries
+            'Status_Mahasiswa': ['Bekerja', 'Tidak Bekerja'] * 10, # 20 entries
+            'Status_Nikah': ['Belum Menikah', 'Menikah'] * 10, # 20 entries
+            'Usia': [20, 21, 22, 20, 23, 21, 24, 20, 25, 22, 19, 20, 21, 22, 23, 20, 24, 21, 25, 22],
+            'IPS1': [3.5, 3.8, 2.5, 3.9, 3.0, 3.7, 3.1, 3.8, 2.0, 3.6, 3.7, 3.5, 3.8, 2.6, 3.9, 3.0, 3.2, 3.7, 2.1, 3.6],
+            'IPS2': [3.6, 3.7, 2.6, 3.8, 3.1, 3.6, 3.2, 3.7, 2.1, 3.5, 3.8, 3.6, 3.7, 2.7, 3.8, 3.1, 3.3, 3.6, 2.2, 3.5],
+            'IPS3': [3.4, 3.9, 2.4, 4.0, 2.9, 3.8, 3.0, 3.9, 1.9, 3.7, 3.6, 3.4, 3.9, 2.5, 4.0, 2.9, 3.1, 3.8, 2.0, 3.7],
+            'IPS4': [3.5, 3.8, 2.5, 3.9, 3.0, 3.7, 3.1, 3.8, 2.0, 3.6, 3.7, 3.5, 3.8, 2.6, 3.9, 3.0, 3.2, 3.7, 2.1, 3.6],
+            'IPS5': [3.6, 3.7, 2.6, 3.8, 3.1, 3.6, 3.2, 3.7, 2.1, 3.5, 3.8, 3.6, 3.7, 2.7, 3.8, 3.1, 3.3, 3.6, 2.2, 3.5],
+            'IPS6': [3.4, 3.9, 2.4, 4.0, 2.9, 3.8, 3.0, 3.9, 1.9, 3.7, 3.6, 3.4, 3.9, 2.5, 4.0, 2.9, 3.1, 3.8, 2.0, 3.7],
+            'IPS7': [3.5, 3.8, 2.5, 3.9, 3.0, 3.7, 3.1, 3.8, 2.0, 3.6, 3.7, 3.5, 3.8, 2.6, 3.9, 3.0, 3.2, 3.7, 2.1, 3.6],
+            'IPS8': [3.6, 3.7, 2.6, 3.8, 3.1, 3.6, 3.2, 3.7, 2.1, 3.5, 3.8, 3.6, 3.7, 2.7, 3.8, 3.1, 3.3, 3.6, 2.2, 3.5],
+            'Kelulusan': [1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1] # 1 for Lulus, 0 for Tidak Lulus
+        }
+        df_dummy = pd.DataFrame(data)
 
-    # Hitung IPK sebagai rata-rata dari IPS1-IPS8 untuk data dummy
+    # Calculate IPK as average of IPS1-IPS8 for dummy data (assuming these columns exist in your CSV)
     ips_cols = [f'IPS{i}' for i in range(1, 9)]
+    # Drop rows with NaN in IPS columns if they exist to avoid errors in mean calculation
+    df_dummy.dropna(subset=ips_cols, inplace=True)
     df_dummy['IPK'] = df_dummy[ips_cols].mean(axis=1)
 
     # Inisialisasi LabelEncoder
@@ -211,14 +220,39 @@ def load_and_train_model():
 
     # Secara eksplisit fit LabelEncoder dengan SEMUA kemungkinan kategori
     # Ini sangat penting untuk mencegah error "unseen label" saat transform
+    # Pastikan kategori ini sesuai dengan yang ada di data Anda dan di form
     le_gender.fit(['Pria', 'Wanita'])
     le_status_mahasiswa.fit(['Bekerja', 'Tidak Bekerja'])
     le_status_nikah.fit(['Belum Menikah', 'Menikah'])
 
-    # Transform kolom kategorikal di data dummy
-    df_dummy['Gender_encoded'] = le_gender.transform(df_dummy['Gender'])
-    df_dummy['Status_Mahasiswa_encoded'] = le_status_mahasiswa.transform(df_dummy['Status_Mahasiswa'])
-    df_dummy['Status_Nikah_encoded'] = le_status_nikah.transform(df_dummy['Status_Nikah'])
+    # Transform kolom kategorikal di data dummy (pastikan kolom ini ada di df_dummy)
+    # Tambahkan penanganan error jika kolom tidak ada
+    try:
+        df_dummy['Gender_encoded'] = le_gender.transform(df_dummy['Gender'])
+        df_dummy['Status_Mahasiswa_encoded'] = le_status_mahasiswa.transform(df_dummy['Status_Mahasiswa'])
+        df_dummy['Status_Nikah_encoded'] = le_status_nikah.transform(df_dummy['Status_Nikah'])
+    except KeyError as e:
+        st.error(f"Kolom kategorikal tidak ditemukan di data dummy: {e}. Pastikan CSV Anda memiliki kolom 'Gender', 'Status_Mahasiswa', 'Status_Nikah'.")
+        # Fallback to internal dummy data if CSV parsing fails on categorical columns
+        data = {
+            'Gender': ['Pria', 'Wanita'] * 10, 'Status_Mahasiswa': ['Bekerja', 'Tidak Bekerja'] * 10, 'Status_Nikah': ['Belum Menikah', 'Menikah'] * 10,
+            'Usia': [20, 21, 22, 20, 23, 21, 24, 20, 25, 22, 19, 20, 21, 22, 23, 20, 24, 21, 25, 22],
+            'IPS1': [3.5, 3.8, 2.5, 3.9, 3.0, 3.7, 3.1, 3.8, 2.0, 3.6, 3.7, 3.5, 3.8, 2.6, 3.9, 3.0, 3.2, 3.7, 2.1, 3.6],
+            'IPS2': [3.6, 3.7, 2.6, 3.8, 3.1, 3.6, 3.2, 3.7, 2.1, 3.5, 3.8, 3.6, 3.7, 2.7, 3.8, 3.1, 3.3, 3.6, 2.2, 3.5],
+            'IPS3': [3.4, 3.9, 2.4, 4.0, 2.9, 3.8, 3.0, 3.9, 1.9, 3.7, 3.6, 3.4, 3.9, 2.5, 4.0, 2.9, 3.1, 3.8, 2.0, 3.7],
+            'IPS4': [3.5, 3.8, 2.5, 3.9, 3.0, 3.7, 3.1, 3.8, 2.0, 3.6, 3.7, 3.5, 3.8, 2.6, 3.9, 3.0, 3.2, 3.7, 2.1, 3.6],
+            'IPS5': [3.6, 3.7, 2.6, 3.8, 3.1, 3.6, 3.2, 3.7, 2.1, 3.5, 3.8, 3.6, 3.7, 2.7, 3.8, 3.1, 3.3, 3.6, 2.2, 3.5],
+            'IPS6': [3.4, 3.9, 2.4, 4.0, 2.9, 3.8, 3.0, 3.9, 1.9, 3.7, 3.6, 3.4, 3.9, 2.5, 4.0, 2.9, 3.1, 3.8, 2.0, 3.7],
+            'IPS7': [3.5, 3.8, 2.5, 3.9, 3.0, 3.7, 3.1, 3.8, 2.0, 3.6, 3.7, 3.5, 3.8, 2.6, 3.9, 3.0, 3.2, 3.7, 2.1, 3.6],
+            'IPS8': [3.6, 3.7, 2.6, 3.8, 3.1, 3.6, 3.2, 3.7, 2.1, 3.5, 3.8, 3.6, 3.7, 2.7, 3.8, 3.1, 3.3, 3.6, 2.2, 3.5],
+            'Kelulusan': [1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1]
+        }
+        df_dummy = pd.DataFrame(data)
+        df_dummy['IPK'] = df_dummy[ips_cols].mean(axis=1)
+        df_dummy['Gender_encoded'] = le_gender.transform(df_dummy['Gender'])
+        df_dummy['Status_Mahasiswa_encoded'] = le_status_mahasiswa.transform(df_dummy['Status_Mahasiswa'])
+        df_dummy['Status_Nikah_encoded'] = le_status_nikah.transform(df_dummy['Status_Nikah'])
+        st.warning("Menggunakan data dummy internal karena masalah pada CSV atau kolom yang tidak ditemukan.")
 
     # Definisikan fitur (X) dan target (y)
     # Pastikan urutan kolom sesuai dengan yang diharapkan model Anda saat pelatihan
@@ -227,15 +261,17 @@ def load_and_train_model():
         'IPS1', 'IPS2', 'IPS3', 'IPS4', 'IPS5', 'IPS6', 'IPS7', 'IPS8',
         'Gender_encoded', 'Status_Mahasiswa_encoded', 'Status_Nikah_encoded'
     ]
-    X_dummy = df_dummy[model_features]
+    # Filter df_dummy to only include model_features that actually exist in the dataframe
+    existing_model_features = [col for col in model_features if col in df_dummy.columns]
+    X_dummy = df_dummy[existing_model_features]
     y_dummy = df_dummy['Kelulusan']
 
     # Latih model RandomForestClassifier
     model = RandomForestClassifier(random_state=42)
     model.fit(X_dummy, y_dummy)
 
-    # Mengembalikan model, encoder, dan daftar fitur agar konsisten
-    return model, le_gender, le_status_mahasiswa, le_status_nikah, model_features
+    # Return model, encoders, and list of features actually used for training
+    return model, le_gender, le_status_mahasiswa, le_status_nikah, existing_model_features
 
 # Muat model dan encoders (akan dilatih sekali saat aplikasi dimulai atau dimuat dari cache)
 model, le_gender, le_status_mahasiswa, le_status_nikah, model_features = load_and_train_model()
@@ -290,7 +326,6 @@ st.subheader('Prediksi Kelulusan')
 if st.button('Prediksi Kelulusan'):
     try:
         # Preprocessing input untuk fitur kategorikal menggunakan encoder yang sudah dilatih
-        # Gunakan .transform() langsung karena encoder sudah di-fit dengan semua kelas yang mungkin
         gender_encoded = le_gender.transform([gender])[0]
         status_mahasiswa_encoded = le_status_mahasiswa.transform([status_mahasiswa])[0]
         status_nikah_encoded = le_status_nikah.transform([status_nikah])[0]
@@ -307,7 +342,10 @@ if st.button('Prediksi Kelulusan'):
             input_dict[f'IPS{i}'] = ips_values[f'IPS{i}']
 
         # Buat DataFrame dari input pengguna, pastikan urutan kolom sesuai dengan model_features
-        input_data_df = pd.DataFrame([input_dict])[model_features]
+        # Filter input_dict untuk hanya menyertakan fitur yang digunakan model
+        final_input_data = {feature: input_dict[feature] for feature in model_features if feature in input_dict}
+        input_data_df = pd.DataFrame([final_input_data])
+
 
         # Lakukan Prediksi
         prediction = model.predict(input_data_df)
@@ -321,9 +359,9 @@ if st.button('Prediksi Kelulusan'):
 
         # Tampilkan pesan sukses/error
         if prediction[0] == 1:
-            st.success(f'Mahasiswa diprediksi **LULUS**! 🎉 Probabilitas: **{pass_proba:.2f}%**')
+            st.success(f'Mahasiswa diprediksi **LULUS TEPAT WAKTU**! 🎉 Probabilitas: **{pass_proba:.2f}%**')
         else:
-            st.error(f'Mahasiswa diprediksi **TIDAK LULUS**! 😔 Probabilitas: **{fail_proba:.2f}%**')
+            st.error(f'Mahasiswa diprediksi **TERLAMBAT LULUS**! 😔 Probabilitas: **{fail_proba:.2f}%**')
 
         # Visualisasi skala probabilitas kustom (mirip progress bar)
         progress_bar_color_class = "progress-bar" # Default hijau untuk "Lulus"
