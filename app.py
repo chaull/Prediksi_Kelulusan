@@ -170,9 +170,9 @@ if st.button('Prediksi Kelulusan'):
 
         # Corrected: Separate the st.success/st.error calls to avoid DeltaGenerator print
         if prediction[0] == 1:
-            st.success(f'Mahasiswa diprediksi **LULUS**! 🎉 Probabilitas: **{pass_proba:.2f}%**')
+            st.success(f'Mahasiswa diprediksi **LULUS TEPAT WAKTU**! 🎉 Probabilitas: **{pass_proba:.2f}%**')
         else:
-            st.error(f'Mahasiswa diprediksi **TIDAK LULUS**! 😔 Probabilitas: **{fail_proba:.2f}%**')
+            st.error(f'Mahasiswa diprediksi **TERLAMBAT LULUS**! 😔 Probabilitas: **{fail_proba:.2f}%**')
 
         # Simple visual scale using st.progress
         st.write("Skala Probabilitas Lulus:")
