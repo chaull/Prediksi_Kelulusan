@@ -40,7 +40,7 @@ def load_and_train_model():
 
     # Extended dummy data for training example
     # In a real application, you would use data from your 'Kelulusan Train.csv' file.
-    # Ensure this dummy data covers all categories that can appear in the selectboxes
+    # Ensure this dummy data covers all categories that can appear in the selectbox
     data = {
         'Gender': ['Pria', 'Wanita'] * 10, # 20 entries to ensure both categories are present
         'Status_Mahasiswa': ['Bekerja', 'Tidak Bekerja'] * 10, # 20 entries
@@ -160,11 +160,14 @@ if st.button('Prediksi Kelulusan'):
 
         st.subheader('Hasil Prediksi & Skala Probabilitas')
 
-        # Display results and probability scale
         pass_proba = prediction_proba[0][1] * 100 # Probability of passing (class 1)
         fail_proba = prediction_proba[0][0] * 100 # Probability of failing (class 0)
 
-        st.success(f'Mahasiswa diprediksi **LULUS**! 🎉 Probabilitas: **{pass_proba:.2f}%**') if prediction[0] == 1 else st.error(f'Mahasiswa diprediksi **TIDAK LULUS**! 😔 Probabilitas: **{fail_proba:.2f}%**')
+        # Corrected: Separate the st.success/st.error calls
+        if prediction[0] == 1:
+            st.success(f'Mahasiswa diprediksi **LULUS**! 🎉 Probabilitas: **{pass_proba:.2f}%**')
+        else:
+            st.error(f'Mahasiswa diprediksi **TIDAK LULUS**! 😔 Probabilitas: **{fail_proba:.2f}%**')
 
         # Simple visual scale using st.progress
         st.write("Skala Probabilitas Lulus:")
@@ -173,7 +176,7 @@ if st.button('Prediksi Kelulusan'):
 
     except Exception as e:
         # Catch any unexpected errors and display them
-        st.error(f"Terjadi kesalahan: {e}. Mohon coba lagi. Jika masalah berlanjut, pastikan semua input valid dan model Anda dilatih dengan benar.")
+        st.error(f"Terjadi kesalahan: {e}. Mohon coba lagi. Jika masalah berlanjut, pastikan semua input valid dan model Anda dilatih dengan benar. Debugging Info: {e}")
 
 st.markdown('---')
 st.caption('Aplikasi ini dibuat menggunakan Streamlit dan scikit-learn. Model prediksi menggunakan data dummy; untuk hasil yang akurat, gantilah dengan model yang telah dilatih pada dataset asli Anda.')
