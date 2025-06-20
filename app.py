@@ -9,7 +9,7 @@ from sklearn.model_selection import train_test_split # Needed for dummy model tr
 # --- Streamlit Page Configuration ---
 st.set_page_config(
     page_title="Prediksi Kelulusan Mahasiswa",
-    page_icon="🎓",
+    page_icon="�",
     layout="wide", # Using wide layout
     initial_sidebar_state="auto"
 )
@@ -40,7 +40,7 @@ def load_and_train_model():
 
     # Extended dummy data for training example
     # In a real application, you would use data from your 'Kelulusan Train.csv' file.
-    # Ensure this dummy data covers all categories that can appear in the selectbox
+    # Ensure this dummy data covers all categories that can appear in the radio buttons
     data = {
         'Gender': ['Pria', 'Wanita'] * 10, # 20 entries to ensure both categories are present
         'Status_Mahasiswa': ['Bekerja', 'Tidak Bekerja'] * 10, # 20 entries
@@ -107,11 +107,14 @@ st.header('Data Diri Mahasiswa')
 
 col1, col2 = st.columns(2)
 with col1:
-    gender = st.selectbox('Jenis Kelamin', ['Pria', 'Wanita'])
-    status_mahasiswa = st.selectbox('Status Mahasiswa', ['Bekerja', 'Tidak Bekerja'])
+    # Changed to st.radio for Jenis Kelamin
+    gender = st.radio('Jenis Kelamin', ['Pria', 'Wanita'], index=0) # index=0 sets 'Pria' as default
+    # Changed to st.radio for Status Mahasiswa
+    status_mahasiswa = st.radio('Status Mahasiswa', ['Bekerja', 'Tidak Bekerja'], index=1) # index=1 sets 'Tidak Bekerja' as default
 with col2:
     usia = st.number_input('Usia', min_value=17, max_value=70, value=20, help="Masukkan usia mahasiswa.")
-    status_nikah = st.selectbox('Status Pernikahan', ['Belum Menikah', 'Menikah'])
+    # Changed to st.radio for Status Pernikahan
+    status_nikah = st.radio('Status Pernikahan', ['Belum Menikah', 'Menikah'], index=0) # index=0 sets 'Belum Menikah' as default
 
 st.header('Nilai Akademik')
 ips_values = {}
@@ -120,6 +123,8 @@ cols_ips = st.columns(num_ips_cols)
 
 for i in range(1, 9):
     with cols_ips[(i - 1) % num_ips_cols]:
+        # st.number_input inherently includes increment/decrement buttons.
+        # No direct option to remove them in Streamlit API.
         ips_values[f'IPS{i}'] = st.number_input(f'IPS Semester {i}', min_value=0.0, max_value=4.0, value=3.0, step=0.01, key=f'ips_{i}', help=f"Masukkan Indeks Prestasi Semester {i} (0.0 - 4.0).")
 
 # Calculate IPK from the input IPS values
@@ -163,7 +168,7 @@ if st.button('Prediksi Kelulusan'):
         pass_proba = prediction_proba[0][1] * 100 # Probability of passing (class 1)
         fail_proba = prediction_proba[0][0] * 100 # Probability of failing (class 0)
 
-        # Corrected: Separate the st.success/st.error calls
+        # Corrected: Separate the st.success/st.error calls to avoid DeltaGenerator print
         if prediction[0] == 1:
             st.success(f'Mahasiswa diprediksi **LULUS**! 🎉 Probabilitas: **{pass_proba:.2f}%**')
         else:
