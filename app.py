@@ -32,10 +32,8 @@ with st.form("form_prediksi"):
         col1, col2 = st.columns(2)
         with col1:
             ips_val1 = st.number_input(f"IPS {row*2 + 1}", min_value=0.0, max_value=4.0, step=0.01, key=f"ips_{row*2 + 1}")
-            ips.append(ips_val1)
         with col2:
             ips_val2 = st.number_input(f"IPS {row*2 + 2}", min_value=0.0, max_value=4.0, step=0.01, key=f"ips_{row*2 + 2}")
-            ips.append(ips_val2)
 
     # Hitung IPK
     ipk = round(np.mean(ips), 2)
