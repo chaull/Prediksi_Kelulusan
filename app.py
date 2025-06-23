@@ -26,19 +26,17 @@ with st.form("form_prediksi"):
 
     st.markdown("---")
     st.markdown("### 🧮 Nilai IPS per Semester")
+
+    # IPS input disembunyikan, bisa otomatis atau diatur sesuai backend
     ips = []
-    col1, col2 = st.columns(2)
     for i in range(1, 9):
-        if i % 2 == 1:
-            with col1:
-                ips_val = st.number_input(f"IPS {i}", min_value=0.0, max_value=4.0, step=0.01, key=f"ips_{i}")
-        else:
-            with col2:
-                ips_val = st.number_input(f"IPS {i}", min_value=0.0, max_value=4.0, step=0.01, key=f"ips_{i}")
-        ips.append(ips_val)
+        # Gunakan input tersembunyi (bisa ubah jadi nilai random atau default tertentu jika mau tes)
+        input_placeholder = st.empty()
+        val = input_placeholder.number_input(f"IPS {i}", min_value=0.0, max_value=4.0, step=0.01, key=f"ips_{i}", label_visibility="collapsed")
+        ips.append(val)
 
     ipk = round(np.mean(ips), 2)
-    st.info(f"📈 IPK otomatis dihitung: **{ipk}**")
+    st.info(f"📈 IPK otomatis dihitung dari IPS: **{ipk}**")
 
     submit = st.form_submit_button("🔍 Prediksi Kelulusan")
 
