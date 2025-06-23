@@ -8,31 +8,41 @@ model = joblib.load('model_kelulusan.pkl')
 encoders = joblib.load('encoders.pkl')
 fitur_model = joblib.load('fitur_model.pkl')  # urutan kolom saat training
 
-st.title("🎓 Prediksi Kelulusan Mahasiswa")
+# Tampilan utama
+st.set_page_config(page_title="Prediksi Kelulusan Mahasiswa", page_icon="🎓", layout="centered")
+st.markdown("<h1 style='text-align: center; color: #4B8BBE;'>🎓 Prediksi Kelulusan Mahasiswa</h1>", unsafe_allow_html=True)
+st.markdown("---")
 
 with st.form("form_prediksi"):
-    # Input fitur kategorikal
-    jenis_kelamin = st.selectbox("Jenis Kelamin", encoders['JENIS KELAMIN'].classes_)
-    status_mahasiswa = st.selectbox("Status Mahasiswa", encoders['STATUS MAHASISWA'].classes_)
-    status_nikah = st.selectbox("Status Nikah", encoders['STATUS NIKAH'].classes_)
+    st.markdown("### 📌 Data Mahasiswa")
 
-    # Input umur
-    umur = st.number_input("Umur", min_value=15, max_value=100)
+    col1, col2 = st.columns(2)
+    with col1:
+        jenis_kelamin = st.selectbox("👤 Jenis Kelamin", encoders['JENIS KELAMIN'].classes_)
+        status_mahasiswa = st.selectbox("🎓 Status Mahasiswa", encoders['STATUS MAHASISWA'].classes_)
+    with col2:
+        status_nikah = st.selectbox("💍 Status Nikah", encoders['STATUS NIKAH'].classes_)
+        umur = st.number_input("📅 Umur", min_value=15, max_value=100)
 
-    # Input IPS 1-8
+    st.markdown("---")
+    st.markdown("### 🧮 Nilai IPS per Semester")
     ips = []
+    col1, col2 = st.columns(2)
     for i in range(1, 9):
-        ips_val = st.number_input(f"IPS {i}", min_value=0.0, max_value=4.0, step=0.01)
+        if i % 2 == 1:
+            with col1:
+                ips_val = st.number_input(f"IPS {i}", min_value=0.0, max_value=4.0, step=0.01, key=f"ips_{i}")
+        else:
+            with col2:
+                ips_val = st.number_input(f"IPS {i}", min_value=0.0, max_value=4.0, step=0.01, key=f"ips_{i}")
         ips.append(ips_val)
 
-    # IPK otomatis dari rata-rata IPS
     ipk = round(np.mean(ips), 2)
-    st.info(f"IPK otomatis dihitung: {ipk}")
+    st.info(f"📈 IPK otomatis dihitung: **{ipk}**")
 
-    submit = st.form_submit_button("Prediksi")
+    submit = st.form_submit_button("🔍 Prediksi Kelulusan")
 
 if submit:
-    # Encode kategorikal
     input_data = {
         'JENIS KELAMIN': encoders['JENIS KELAMIN'].transform([jenis_kelamin])[0],
         'STATUS MAHASISWA': encoders['STATUS MAHASISWA'].transform([status_mahasiswa])[0],
@@ -49,32 +59,24 @@ if submit:
         'IPK': ipk
     }
 
-    # Buat DataFrame dari input
     df_input = pd.DataFrame([input_data])
-
-    # Bersihkan spasi pada nama kolom input & fitur_model
     df_input.columns = df_input.columns.str.strip()
     fitur_model = [col.strip() for col in fitur_model]
 
     try:
-        # Susun ulang kolom sesuai urutan fitur model
         df_input = df_input[fitur_model]
-
-        # Gunakan .to_numpy() agar bebas error kolom saat prediksi
         input_array = df_input.to_numpy()
 
-        # Prediksi label dan probabilitas
         pred = model.predict(input_array)[0]
         prob = model.predict_proba(input_array)[0]
 
-        # Ambil label hasil prediksi
         hasil = encoders['STATUS KELULUSAN'].inverse_transform([pred])[0]
 
-        # Tampilkan hasil dan probabilitas
-        st.success(f"Hasil Prediksi: Mahasiswa diperkirakan akan **{hasil.upper()}**")
-        st.write("📊 Probabilitas:")
+        st.success(f"✅ Hasil Prediksi: Mahasiswa diperkirakan akan **{hasil.upper()}**")
+
+        st.markdown("### 📊 Probabilitas Prediksi")
         for i, label in enumerate(encoders['STATUS KELULUSAN'].classes_):
-            st.write(f"- {label}: {round(prob[i]*100, 2)}%")
+            st.write(f"- **{label}**: {round(prob[i]*100, 2)}%")
 
     except KeyError as e:
         st.error(f"❌ Kolom input tidak cocok dengan model: {e}")
