@@ -10,6 +10,21 @@ fitur_model = joblib.load('fitur_model.pkl')
 
 # Set halaman
 st.set_page_config(page_title="Prediksi Kelulusan", page_icon="🎓", layout="centered")
+hide_spinner = """
+    <style>
+    /* Hapus spinner dari number_input */
+    input[type=number]::-webkit-inner-spin-button, 
+    input[type=number]::-webkit-outer-spin-button { 
+        -webkit-appearance: none;
+        margin: 0; 
+    }
+    input[type=number] {
+        -moz-appearance: textfield;
+    }
+    </style>
+"""
+st.markdown(hide_spinner, unsafe_allow_html=True)
+
 st.markdown("<h2 style='text-align: center; color: #4B8BBE;'>🎓 Prediksi Kelulusan Mahasiswa</h2>", unsafe_allow_html=True)
 st.markdown("---")
 
@@ -31,10 +46,10 @@ with st.form("form_prediksi"):
     for row in range(4):
         col1, col2 = st.columns(2)
         with col1:
-            ips_val1 = st.text_input(f"IPS {row*2 + 1}", min_value=0.0, max_value=4.0, step=0.01, key=f"ips_{row*2 + 1}")
+            ips_val1 = st.number_input(f"IPS {row*2 + 1}", min_value=0.0, max_value=4.0, step=0.01, key=f"ips_{row*2 + 1}")
             ips.append(ips_val1)
         with col2:
-            ips_val2 = st.text_input(f"IPS {row*2 + 2}", min_value=0.0, max_value=4.0, step=0.01, key=f"ips_{row*2 + 2}")
+            ips_val2 = st.number_input(f"IPS {row*2 + 2}", min_value=0.0, max_value=4.0, step=0.01, key=f"ips_{row*2 + 2}")
             ips.append(ips_val2)
 
     # Hitung IPK
