@@ -10,21 +10,6 @@ fitur_model = joblib.load('fitur_model.pkl')
 
 # Set halaman
 st.set_page_config(page_title="Prediksi Kelulusan", page_icon="🎓", layout="centered")
-hide_spinner = """
-    <style>
-    /* Hapus spinner dari number_input */
-    input[type=number]::-webkit-inner-spin-button, 
-    input[type=number]::-webkit-outer-spin-button { 
-        -webkit-appearance: none;
-        margin: 0; 
-    }
-    input[type=number] {
-        -moz-appearance: textfield;
-    }
-    </style>
-"""
-st.markdown(hide_spinner, unsafe_allow_html=True)
-
 st.markdown("<h2 style='text-align: center; color: #4B8BBE;'>🎓 Prediksi Kelulusan Mahasiswa</h2>", unsafe_allow_html=True)
 st.markdown("---")
 
@@ -99,4 +84,3 @@ if submit:
         st.error(f"❌ Kolom input tidak cocok dengan model: {e}")
         st.write("Kolom input:", df_input.columns.tolist())
         st.write("Kolom yang diminta model:", fitur_model) 
-
