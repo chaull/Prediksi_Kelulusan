@@ -31,9 +31,11 @@ with st.form("form_prediksi"):
     for row in range(4):
         col1, col2 = st.columns(2)
         with col1:
-            ips_val1 = st.number_input(f"IPS {row*2 + 1}", min_value=0.0, max_value=4.0, step=0.01, key=f"ips_{row*2 + 1}")
+            ips_val1 = st.text_input(f"IPS {row*2 + 1}", min_value=0.0, max_value=4.0, step=0.01, key=f"ips_{row*2 + 1}")
+            ips.append(ips_val1)
         with col2:
-            ips_val2 = st.number_input(f"IPS {row*2 + 2}", min_value=0.0, max_value=4.0, step=0.01, key=f"ips_{row*2 + 2}")
+            ips_val2 = st.text_input(f"IPS {row*2 + 2}", min_value=0.0, max_value=4.0, step=0.01, key=f"ips_{row*2 + 2}")
+            ips.append(ips_val2)
 
     # Hitung IPK
     ipk = round(np.mean(ips), 2)
@@ -81,4 +83,5 @@ if submit:
     except KeyError as e:
         st.error(f"❌ Kolom input tidak cocok dengan model: {e}")
         st.write("Kolom input:", df_input.columns.tolist())
-        st.write("Kolom yang diminta model:", fitur_model)
+        st.write("Kolom yang diminta model:", fitur_model) 
+
