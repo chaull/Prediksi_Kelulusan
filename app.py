@@ -10,11 +10,35 @@ fitur_model = joblib.load('fitur_model.pkl')
 
 # Set halaman
 st.set_page_config(page_title="Prediksi Kelulusan", page_icon="🎓", layout="centered")
-st.markdown("<h2 style='text-align: center; color: #4B8BBE;'>🎓 Prediksi Kelulusan Mahasiswa</h2>", unsafe_allow_html=True)
-st.markdown("---")
+
+# CSS untuk mengecilkan ukuran teks dan elemen
+st.markdown("""
+    <style>
+    html, body, [class*="css"] {
+        font-size: 13px !important;
+    }
+    .stButton>button {
+        padding: 0.4em 1em;
+        font-size: 13px;
+    }
+    .stNumberInput input {
+        padding: 0.2em;
+        font-size: 13px;
+    }
+    .stSelectbox div {
+        font-size: 13px;
+    }
+    .stSelectbox label, .stNumberInput label {
+        font-size: 12px !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+st.markdown("<h4 style='text-align: center; color: #4B8BBE;'>🎓 Prediksi Kelulusan Mahasiswa</h4>", unsafe_allow_html=True)
+st.markdown("<hr style='margin-top: -10px; margin-bottom: 10px;'>", unsafe_allow_html=True)
 
 with st.form("form_prediksi"):
-    st.markdown("### 🧾 Informasi Mahasiswa")
+    st.markdown("#### 🧾 Informasi Mahasiswa")
     col1, col2 = st.columns(2)
     with col1:
         jenis_kelamin = st.selectbox("👤 Jenis Kelamin", encoders['JENIS KELAMIN'].classes_)
@@ -24,9 +48,9 @@ with st.form("form_prediksi"):
         umur = st.number_input("📅 Umur", min_value=15, max_value=100, step=1)
 
     st.markdown("---")
-    st.markdown("### 📚 Nilai IPS Semester")
+    st.markdown("#### 📚 Nilai IPS Semester")
 
-    # Buat layout IPS jadi 4 baris x 2 kolom
+    # Layout IPS jadi 4 baris x 2 kolom
     ips = []
     for row in range(4):
         col1, col2 = st.columns(2)
@@ -37,9 +61,8 @@ with st.form("form_prediksi"):
             ips_val2 = st.number_input(f"IPS {row*2 + 2}", min_value=0.0, max_value=4.0, step=0.01, key=f"ips_{row*2 + 2}")
             ips.append(ips_val2)
 
-    # Hitung IPK
     ipk = round(np.mean(ips), 2)
-    st.success(f"📈 IPK Otomatis: {ipk}")
+    st.info(f"📈 IPK Otomatis: {ipk}", icon="✅")
 
     st.markdown("---")
     submit = st.form_submit_button("🔍 Prediksi Kelulusan")
@@ -76,11 +99,11 @@ if submit:
 
         st.balloons()
         st.success(f"🎯 Hasil Prediksi: Mahasiswa diperkirakan akan **{hasil.upper()}**")
-        st.markdown("### 📊 Rincian Probabilitas")
+        st.markdown("#### 📊 Rincian Probabilitas")
         for i, label in enumerate(encoders['STATUS KELULUSAN'].classes_):
-            st.write(f"- **{label}**: {round(prob[i]*100, 2)}%")
+            st.markdown(f"- **{label}**: {round(prob[i]*100, 2)}%")
 
     except KeyError as e:
         st.error(f"❌ Kolom input tidak cocok dengan model: {e}")
         st.write("Kolom input:", df_input.columns.tolist())
-        st.write("Kolom yang diminta model:", fitur_model) 
+        st.write("Kolom yang diminta model:", fitur_model)
